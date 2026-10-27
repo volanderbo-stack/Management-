@@ -1,0 +1,8 @@
+{
+  "appId": "ua.khpi.rozumnyimenedzhment",
+  "appName": "Розумний менеджмент",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#F2F4EF"
+  }
+}

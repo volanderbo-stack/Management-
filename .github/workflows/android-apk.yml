@@ -1,0 +1,69 @@
+# Збирає Android-застосунок (APK) і викладає його в розділ Releases
+name: Android APK
+
+on:
+  push:
+    paths:
+      - "index.html"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - "icons/**"
+      - "android-build/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Створити Android-проєкт
+        working-directory: android-build
+        run: |
+          npm install --no-audit --no-fund
+          node prepare-web.js
+          npx cap add android
+          node customize.js
+          # Номер версії росте з кожною збіркою, щоб нова версія ставилася поверх старої
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
+
+      - name: Зібрати APK
+        working-directory: android-build/android
+        run: |
+          # Постійний ключ підпису, щоб оновлення встановлювались без видалення старої версії
+          mkdir -p ~/.android
+          cp ../debug.keystore ~/.android/debug.keystore
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../../Rozumnyi-Menedzhment.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rozumnyi-Menedzhment-apk
+          path: Rozumnyi-Menedzhment.apk
+
+      - name: Викласти в Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "Розумний менеджмент — Android"
+          body: |
+            Завантажте файл **Rozumnyi-Menedzhment.apk** на телефон з Android і відкрийте його.
+            Якщо телефон попросить, дозвольте встановлення з цього джерела.
+
+            Збірка №${{ github.run_number }} з коміту ${{ github.sha }}.
+          files: Rozumnyi-Menedzhment.apk
+          make_latest: true
