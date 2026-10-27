@@ -1,39 +1,43 @@
-# Публікує веб-версію на GitHub Pages (її можна встановити на iPhone і Android через браузер)
+# Оновлює веб-версію на GitHub Pages: копіює файли сайту в гілку gh-pages
+# (її можна встановити на iPhone і Android через браузер)
 name: GitHub Pages
 
 on:
   push:
-    paths-ignore:
-      - "android-build/**"
-      - ".github/workflows/android-apk.yml"
+    branches-ignore:
+      - gh-pages
+    paths:
+      - "index.html"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - "icons/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Зібрати файли сайту
+      - name: Оновити гілку gh-pages
         run: |
-          mkdir _site
-          cp -r index.html manifest.webmanifest sw.js icons .nojekyll _site/
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          mkdir ../site
+          cp -r index.html manifest.webmanifest sw.js icons .nojekyll ../site/
+          git fetch --depth=1 origin gh-pages
+          git checkout -B gh-pages FETCH_HEAD
+          git rm -rq .
+          cp -r ../site/. .
+          git add -A
+          if git diff --cached --quiet; then echo "Змін немає"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Оновити сайт з ${GITHUB_SHA::7}"
+          git push origin gh-pages

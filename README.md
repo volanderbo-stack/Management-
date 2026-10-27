@@ -32,8 +32,8 @@ APK збирається автоматично (GitHub Actions → **Android AP
 
 ### iPhone і Android: через браузер (PWA)
 
-Спершу один раз увімкніть сайт: **Settings → Pages → Source → GitHub Actions**. Після цього застосунок буде доступний за адресою
-`https://volanderbo-stack.github.io/Management-/`
+Застосунок доступний за адресою `https://volanderbo-stack.github.io/Management-/`
+Сайт публікується з гілки `gh-pages`, яку автоматично оновлює GitHub Actions → **GitHub Pages** після кожної зміни `index.html` чи іконок.
 
 - **Android (Chrome):** відкрийте посилання, меню ⋮ → «Встановити застосунок» або «Додати на головний екран».
 - **iPhone (Safari):** відкрийте посилання, «Поділитися» → «На екран „Додому“».
